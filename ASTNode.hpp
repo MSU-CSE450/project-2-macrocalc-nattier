@@ -40,19 +40,28 @@ private:
 // Public member functions
 public:
   // Constructors
-    ASTNode(Type type = EMPTY) : type(type), value(0.0) {}
-    ASTNode(Type type, double value) : type(type), value(value) {}
-    ASTNode(Type type, const std::string &str_value) 
-        : type(type), str_value(str_value), value(0.0) {}
-    // one child
-    ASTNode(Type type, ASTNode child) : type(type), value(0.0) {
-        AddChild(child);
-    }
-    // two children
-    ASTNode(Type type, ASTNode child1, ASTNode child2) : type(type), value(0.0) {
-        AddChild(child1);
-        AddChild(child2);
-    }
+  ASTNode(Type type = EMPTY) 
+    : type(type), value(0.0), str_value("") {}
+
+  ASTNode(Type type, double value) 
+    : type(type), value(value), str_value("") {}
+
+  ASTNode(Type type, const std::string &str_value) 
+    : type(type), value(0.0), str_value(str_value) {}
+
+  // Constructor with one child
+  ASTNode(Type type, ASTNode child) : type(type), value(0.0), str_value("") 
+  {
+    AddChild(child);
+  }
+
+  // Constructor with two children
+  ASTNode(Type type, ASTNode child1, ASTNode child2) 
+      : type(type), value(0.0), str_value("") 
+  {
+      AddChild(child1);
+      AddChild(child2);
+  }
 
   // Copy constructor
   ASTNode(const ASTNode &) = default;
