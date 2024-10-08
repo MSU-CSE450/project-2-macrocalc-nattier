@@ -1,4 +1,4 @@
-#include <assert.h>
+#include <cassert>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -46,6 +46,80 @@ void Error(emplex::Token token, Ts... message)
   Error(token.line_id, message...);
 }
 
+/**
+ * Function used to EXECUTE an ASTNode (EG)
+ * NOTE: Expressions DO NOT WORK
+ *     we need to write the logic for that
+ */
+double Run(const ASTNode& node, SymbolTable& symbols) {
+  switch (node.GetType()) {
+    case ASTNode::LITERAL:
+      return node.GetValue();
+
+    case ASTNode::VARIABLE: {
+      const std::string &name = node.GetStrValue();
+      if (!symbols.HasVar(name)) {
+        Error(0, "Undefined variable '", name, "'.");
+      }
+      return symbols.GetValue(name);
+    }
+
+    case ASTNode::VAR: {
+      const std::string &name = node.GetStrValue();
+      if (symbols.HasVar(name)) {
+        Error(0, "Variable '", name, "' already declared in this scope.");
+      }
+      symbols.AddVar(name, 0.0);  // Default initialization
+      return 0.0;
+    }
+
+    case ASTNode::ASSIGN: {
+      double rhs_value = Run(node.GetChild(1), symbols);
+      const ASTNode& lhs = node.GetChild(0);
+      if (lhs.GetType() != ASTNode::VARIABLE) {
+        Error(0, "Assignment target must be a variable.");
+      }
+      symbols.SetValue(lhs.GetStrValue(), rhs_value);
+      return rhs_value;
+    }
+
+    case ASTNode::PRINT: {
+      for (const auto &child : node.GetChildren()) {
+        if (child.GetType() == ASTNode::STRING) {
+          std::cout << child.GetStrValue();
+        } else {
+          std::cout << Run(child, symbols);
+        }
+      }
+      std::cout << std::endl;
+      return 0.0;
+    }
+
+    case ASTNode::IF: {
+      if (Run(node.GetChild(0), symbols) != 0.0) {
+        return Run(node.GetChild(1), symbols);
+      } else if (node.GetChildren().size() > 2) {
+        return Run(node.GetChild(2), symbols);
+      }
+      return 0.0;
+    }
+
+    case ASTNode::WHILE: {
+      while (Run(node.GetChild(0), symbols) != 0.0) {
+        Run(node.GetChild(1), symbols);
+      }
+      return 0.0;
+    }
+
+    case ASTNode::EXPR:
+      // Expression handling logic can go here, handling operations based on children. (EG)
+      return 0.0;  // Placeholder for now
+
+    case ASTNode::EMPTY:
+    default:
+      return 0.0;
+  }
+}
 
 int main(int argc, char * argv[])
 {
@@ -65,6 +139,17 @@ int main(int argc, char * argv[])
   // TO DO:  
   // PARSE input file to create Abstract Syntax Tree (AST).
   // EXECUTE the AST to run your program.
+      // Step 1: Lexing
+    emplex::Lexer lexer;
+    std::vector<emplex::Token> tokens = lexer.Tokenize(in_file);
+
+    // Step 2: Parsing Placeholder (EG)
+    //ASTNode root = Parse(tokens); 
+
+    // Step 3: Running
+    SymbolTable symbols;
+    // NO ROOT YET becasue of Parse not yet happening
+    //Run(root, symbols);
   
 }
 
