@@ -103,7 +103,8 @@ class MacroCalc {
       switch (CurToken()) {
       using namespace emplex;
       case Lexer::ID_BEGINSCOPE : return ParseScope();
-      case Lexer::ID_IDENTIFIER : return ParseDeclare();
+      case Lexer::ID_VAR : return ParseDeclare();
+      case Lexer::ID_IDENTIFIER : return ParseAssign();
       case Lexer::ID_PRINT : return ParsePrint();
       // case Lexer::ID_IF: return ParseIf();
       // case Lexer::ID_WHILE: return ParseWhile();
@@ -139,6 +140,10 @@ class MacroCalc {
 
     //Still working on this... (SP)
 
+  }
+
+  ASTNode ParseAssign() {
+    
   }
 
   double Run(const ASTNode& node) {
