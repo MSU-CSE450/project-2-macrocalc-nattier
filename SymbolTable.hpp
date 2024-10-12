@@ -76,7 +76,7 @@ public:
       return scopes.back().count(name) > 0;
   }
 
-  // HAVE NOT SET UP
+  // Adds a variable to var_info vector and sets it in the scope (SP)
   size_t AddVar(std::string name, size_t line_num) {
     auto & scope = scopes.back();
     if (scope.count(name)) {
