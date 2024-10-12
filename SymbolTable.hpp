@@ -61,10 +61,45 @@ private:
   //       WITH SHADOWING AND LOOKING UP VARIABLES LATER.
 
 public:
-  // CONSTRUCTOR
-  // Inits to the "Global scope"
-  SymbolTable() {
-    PushScope();  // Start with a global scope
+
+  static constexpr size_t NO_ID = static_cast<size_t>(-1);
+
+  size_t GetNumVars() const { return var_info.size(); }
+
+  //Returns the variable ID of the innermost scope
+  //Returns -1 if no variable was found
+  size_t GetVarID(std::string name) const {
+    for (auto it = scopes.rbegin();
+         it != scopes.rend();
+         ++it)
+    {
+      if (it->count(name)) return it->find(name)->second;
+    }
+
+    return NO_ID;
+  }
+
+  //Checks if a variable exists in any scope and returns true or false
+  bool HasVar(std::string name) const {
+    return (GetVarID(name) != NO_ID);
+  }
+
+  // Adds a variable to var_info vector and sets it in the scope (SP)
+  size_t AddVar(std::string name, size_t line_num) {
+    auto & scope = scopes.back();
+    if (scope.count(name)) {
+      Error(line_num, "Redeclaration of variable '", name, "'.");
+    }
+    size_t var_id = var_info.size();
+    var_info.emplace_back(name, line_num);
+    scope[name] = var_id;
+    return var_id;
+  }
+
+  //Returns a VarData struct using it's id(index) in the var_info vector
+  VarData & VarValue(size_t id) {
+    assert(id < var_info.size());
+    return var_info[id];
   }
 
   // Push a new scope onto the stack (EG)
@@ -74,15 +109,13 @@ public:
 
   // Pop the top scope off the stack (EG)
   void PopScope() {
-    if (!scopes.empty()) {
-      scopes.pop_back();
-    } 
-    else {
-      throw std::runtime_error("ERROR: No scope to pop.");
-    }
+    assert(scopes.size() > 1);
+    scopes.pop_back();
   }
 
-  // MANAGING VARS
+
+
+  //OLD FUNCTIONS, MAY NOT NEED
   /**
    * Function that searches all scopes to find a var (EG)
    * Searches from the top scope down to the bottom scope
@@ -106,18 +139,6 @@ public:
   bool HasVarInCurrentScope(const std::string &name) const {
       if (scopes.empty()) return false;
       return scopes.back().count(name) > 0;
-  }
-
-  // Adds a variable to var_info vector and sets it in the scope (SP)
-  size_t AddVar(std::string name, size_t line_num) {
-    auto & scope = scopes.back();
-    if (scope.count(name)) {
-      Error(line_num, "Redeclaration of variable '", name, "'.");
-    }
-    size_t var_id = var_info.size();
-    var_info.emplace_back(name, line_num);
-    scope[name] = var_id;
-    return var_id;
   }
 
   // Get the value of a variable by searching from top to bottom scopes (EG)
