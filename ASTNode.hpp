@@ -34,15 +34,19 @@ public:
 
 private:
   Type type{EMPTY};
-  double value; // For string literals
-  std::string str_value;  // For string literals and variable names
+  size_t var_id{}; //If node is a variable, this represents it's index in var_info vector
+  double value{}; //For number literals
+  std::string str_value;  // For string literals
   std::vector<ASTNode> children{};
 
 // Public member functions
 public:
   // Constructors
   ASTNode(Type type = EMPTY) 
-    : type(type), value(0.0), str_value("") {}
+    : type(type) {}
+
+  ASTNode(Type type, size_t var_id)
+  : type(type), var_id(var_id) {}
 
   ASTNode(Type type, double value) 
     : type(type), value(value), str_value("") {}
@@ -81,6 +85,8 @@ public:
   double GetValue() const { return value; }
   // String getter
   const std::string &GetStrValue() const { return str_value; }
+  //Gets the var_id
+  size_t GetVarID() const { return var_id; }
 
   // Children management (daycare)
   const std::vector<ASTNode> & GetChildren() const {return children;}
@@ -100,5 +106,6 @@ public:
   // value setters
   void SetValue(double in) { value = in; }
   void SetStrValue(const std::string &in) { str_value = in; }
+  void SetVarID(size_t var_id) { var_id = var_id; }
 
 };

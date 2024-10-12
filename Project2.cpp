@@ -113,9 +113,9 @@ class MacroCalc {
     auto id_token = UseToken(emplex::Lexer::ID_IDENTIFIER);
     symbols.AddVar(id_token.lexeme, id_token.line_id);
 
-    if (UseToken(emplex::Lexer::ID_SEMICOLON)) return ASTNode{};
+    if (UseTokenIf(emplex::Lexer::ID_SEMICOLON)) return ASTNode{};
 
-    //Still working on this... (SP)
+    UseToken('=', "Expected ';' or '='.");
 
   }
 
