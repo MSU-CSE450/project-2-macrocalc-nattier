@@ -16,9 +16,6 @@
 // Using
 using std::string;
 using std::endl;
-// Used to represent a collection of words (literal string)
-using words_t = std::set<std::string>;
-
 
 /** 
 *  Error function. (EG)
@@ -46,12 +43,105 @@ void Error(emplex::Token token, Ts... message)
   Error(token.line_id, message...);
 }
 
-/**
- * Function used to EXECUTE an ASTNode (EG)
- * NOTE: Expressions DO NOT WORK
- *     we need to write the logic for that
- */
-double Run(const ASTNode& node, SymbolTable& symbols) {
+class MacroCalc {
+  private:
+    std::vector<emplex::Token> tokens{};
+    size_t token_id{0};
+    ASTNode root{ASTNode::SCOPE};
+
+    SymbolTable symbols{};
+
+    std::string TokenName(int id) const {
+      if (id > 0 && id < 128) {
+        return std::string("'") + static_cast<char>(id) + "'";
+      }
+      return emplex::Lexer::TokenName(id);
+    }
+
+    emplex::Token CurToken() const { return tokens[token_id]; }
+
+    emplex::Token UseToken() { return tokens[token_id++]; }
+
+    emplex::Token UseToken(int required_id, std::string err_message="") {
+      if (CurToken() != required_id) {
+        if (err_message.size()) Error(CurToken(), err_message);
+        else {
+          Error(CurToken(),
+            "Expected token type ", TokenName(required_id),
+            ", but found ", TokenName(CurToken())
+          );
+        }
+      }
+      return UseToken();
+    }
+
+    bool UseTokenIf(int test_id) {
+      if (CurToken() == test_id) {
+        token_id++;
+        return true;
+      }
+      return false;
+    }
+
+  public:
+    MacroCalc(std::string filename) {
+      std::ifstream file(filename);
+      emplex::Lexer lexer;
+      tokens = lexer.Tokenize(file);
+
+      Parse();
+    }
+
+    void Parse() {
+      while (token_id < tokens.size()) {
+        ASTNode cur_node = ParseStatement();
+        if (cur_node.GetType()) root.AddChild(cur_node);
+      }
+    }
+
+    ASTNode ParseStatement() {
+      switch (CurToken()) {
+      using namespace emplex;
+      case Lexer::ID_BEGINSCOPE : return ParseScope();
+      case Lexer::ID_IDENTIFIER : return ParseDeclare();
+      case Lexer::ID_PRINT : return ParsePrint();
+      // case Lexer::ID_IF: return ParseIf();
+      // case Lexer::ID_WHILE: return ParseWhile();
+      default:
+        ;
+      }
+    }
+
+  ASTNode ParsePrint() {
+    ASTNode print_node(ASTNode::PRINT);
+  }
+
+  ASTNode ParseScope() {
+    ASTNode scope(ASTNode::SCOPE);
+
+    symbols.PushScope();
+
+    while(CurToken() != emplex::Lexer::ID_ENDSCOPE) {
+      scope.AddChild(ParseStatement());
+    }
+    symbols.PopScope();
+
+    UseToken();
+    return scope;
+  }
+
+  ASTNode ParseDeclare() {
+    UseToken(emplex::Lexer::ID_VAR);
+    auto id_token = UseToken(emplex::Lexer::ID_IDENTIFIER);
+    symbols.AddVar(id_token.lexeme, id_token.line_id);
+
+    if (UseToken(emplex::Lexer::ID_SEMICOLON)) return ASTNode{};
+
+    //Still working on this... (SP)
+
+  }
+
+  double Run(const ASTNode& node) {
   switch (node.GetType()) {
     case ASTNode::LITERAL:
       return node.GetValue();
@@ -74,7 +164,7 @@ double Run(const ASTNode& node, SymbolTable& symbols) {
     }
 
     case ASTNode::ASSIGN: {
-      double rhs_value = Run(node.GetChild(1), symbols);
+      double rhs_value = Run(node.GetChild(1));
       const ASTNode& lhs = node.GetChild(0);
       if (lhs.GetType() != ASTNode::VARIABLE) {
         Error(0, "Assignment target must be a variable.");
@@ -88,7 +178,7 @@ double Run(const ASTNode& node, SymbolTable& symbols) {
         if (child.GetType() == ASTNode::STRING) {
           std::cout << child.GetStrValue();
         } else {
-          std::cout << Run(child, symbols);
+          std::cout << Run(child);
         }
       }
       std::cout << std::endl;
@@ -96,17 +186,17 @@ double Run(const ASTNode& node, SymbolTable& symbols) {
     }
 
     case ASTNode::IF: {
-      if (Run(node.GetChild(0), symbols) != 0.0) {
-        return Run(node.GetChild(1), symbols);
+      if (Run(node.GetChild(0)) != 0.0) {
+        return Run(node.GetChild(1));
       } else if (node.GetChildren().size() > 2) {
-        return Run(node.GetChild(2), symbols);
+        return Run(node.GetChild(2));
       }
       return 0.0;
     }
 
     case ASTNode::WHILE: {
-      while (Run(node.GetChild(0), symbols) != 0.0) {
-        Run(node.GetChild(1), symbols);
+      while (Run(node.GetChild(0)) != 0.0) {
+        Run(node.GetChild(1));
       }
       return 0.0;
     }
@@ -118,8 +208,12 @@ double Run(const ASTNode& node, SymbolTable& symbols) {
     case ASTNode::EMPTY:
     default:
       return 0.0;
+    }
   }
-}
+
+  void Run() { Run(root); }
+};
+
 
 int main(int argc, char * argv[])
 {
@@ -136,20 +230,8 @@ int main(int argc, char * argv[])
     exit(1);
   }
 
-  // TO DO:  
-  // PARSE input file to create Abstract Syntax Tree (AST).
-  // EXECUTE the AST to run your program.
-      // Step 1: Lexing
-    emplex::Lexer lexer;
-    std::vector<emplex::Token> tokens = lexer.Tokenize(in_file);
-
-    // Step 2: Parsing Placeholder (EG)
-    //ASTNode root = Parse(tokens); 
-
-    // Step 3: Running
-    SymbolTable symbols;
-    // NO ROOT YET becasue of Parse not yet happening
-    //Run(root, symbols);
+  MacroCalc mc(argv[1]);
+  mc.Run();
   
 }
 

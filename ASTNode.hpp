@@ -20,6 +20,7 @@ public:
   // All types of nodes we have in our tree
   enum Type {
     EMPTY = 0,
+    SCOPE,
     VARIABLE,
     LITERAL,
     STRING,
@@ -78,15 +79,18 @@ public:
   Type GetType() const { return type; }
   // Value getters
   double GetValue() const { return value; }
+  // String getter
   const std::string &GetStrValue() const { return str_value; }
 
   // Children management (daycare)
   const std::vector<ASTNode> & GetChildren() const {return children;}
+
   // Add child
   void AddChild(ASTNode child) {
     assert(child.GetType() != EMPTY);
     children.push_back(child);
   }
+
   // Get specific child
   const ASTNode &GetChild(size_t id) const {
     assert(id < children.size());
