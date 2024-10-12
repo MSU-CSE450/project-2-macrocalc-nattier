@@ -22,7 +22,7 @@ public:
     EMPTY = 0,
     SCOPE,
     VARIABLE,
-    LITERAL,
+    NUMBER,
     STRING,
     VAR,
     ASSIGN,

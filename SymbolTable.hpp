@@ -116,21 +116,21 @@ public:
 
 
   //OLD FUNCTIONS, MAY NOT NEED
-  /**
-   * Function that searches all scopes to find a var (EG)
-   * Searches from the top scope down to the bottom scope
-   * @return True if var is found. 
-   */
-  bool HasVar(std::string name) const { 
-    // iterate through the levels of scopes
-    for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
-      // try to count the var
-      if (it->count(name) > 0) {
-        return true;
-      }
-    }
-    return false; 
-  }
+  // /**
+  //  * Function that searches all scopes to find a var (EG)
+  //  * Searches from the top scope down to the bottom scope
+  //  * @return True if var is found. 
+  //  */
+  // bool HasVar(std::string name) const { 
+  //   // iterate through the levels of scopes
+  //   for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
+  //     // try to count the var
+  //     if (it->count(name) > 0) {
+  //       return true;
+  //     }
+  //   }
+  //   return false; 
+  // }
 
   /**
    * Check if a variable exists only in the current scope (EG)

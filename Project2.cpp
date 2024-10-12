@@ -59,6 +59,14 @@ class MacroCalc {
       return false;
     }
 
+    ASTNode MakeVarNode(const emplex::Token & token) {
+      size_t var_id = symbols.GetVarID(token.lexeme);
+      assert(var_id < symbols.GetNumVars());
+      ASTNode out(ASTNode::VARIABLE);
+      out.SetVarID(var_id);
+      return out;
+    }
+
   public:
     MacroCalc(std::string filename) {
       std::ifstream file(filename);
@@ -91,7 +99,24 @@ class MacroCalc {
     }
 
   ASTNode ParsePrint() {
-    ASTNode print_node(ASTNode::PRINT);
+    UseToken(emplex::Lexer::ID_PRINT);
+    UseToken(emplex::Lexer::ID_OPENPAREN);
+
+    ASTNode print_node{ASTNode::PRINT};
+
+    //If the print argument is a string literal we add a node as a child
+    if (CurToken() == emplex::Lexer::ID_STRINGLITERAL) {
+      print_node.AddChild(ASTNode{ASTNode::STRING, CurToken().lexeme});
+    }
+    //If it's not as string literal it's assumed to be an expression and appended as a child
+    else {
+      print_node.AddChild(ParseExpression());
+    }
+
+    UseToken(emplex::Lexer::ID_CLOSEPAREN);
+    UseToken(emplex::Lexer::ID_SEMICOLON);
+
+    return print_node;
   }
 
   ASTNode ParseScope() {
@@ -108,6 +133,7 @@ class MacroCalc {
     return scope;
   }
 
+  //Handles variable declarations ex: var x = 10;
   ASTNode ParseDeclare() {
     UseToken(emplex::Lexer::ID_VAR);
     auto id_token = UseToken(emplex::Lexer::ID_IDENTIFIER);
@@ -117,18 +143,83 @@ class MacroCalc {
 
     UseToken('=', "Expected ';' or '='.");
 
+    auto lhs_node = MakeVarNode(id_token);
+    auto rhs_node = ParseExpression();
+    UseToken(';');
+
+    return ASTNode{ASTNode::ASSIGN, lhs_node, rhs_node};
+
   }
 
+  //Handles variable reassignment ex: x = 10;
   ASTNode ParseAssign() {
-    ASTNode assign(ASTNode::ASSIGN);
+    auto id_token = UseToken(emplex::Lexer::ID_IDENTIFIER);
+
+    UseToken(emplex::Lexer::ID_ASSIGN, "Expected '='.");
+
+    auto lhs_node = MakeVarNode(id_token);
+    auto rhs_node = ParseExpression();
+    UseToken(';');
+
+    return ASTNode{ASTNode::ASSIGN, lhs_node, rhs_node};
   }
 
   ASTNode ParseIf() {
-    ASTNode if_node(ASTNode::IF);
+    ASTNode if_node{ASTNode::IF};
+
+    UseToken(emplex::Lexer::ID_IF);
+    UseToken(emplex::Lexer::ID_OPENPAREN);
+
+    //Parse the expression within the parenthesis
+    if_node.AddChild(ParseExpression());
+    UseToken(emplex::Lexer::ID_CLOSEPAREN);
+
+    //If the if-statement has a begin scope we add a scope node
+    if (UseTokenIf(emplex::Lexer::ID_BEGINSCOPE)) {
+      if_node.AddChild(ParseScope());
+    }
+    //Otherwise we just parse the single statement
+    else {
+      if_node.AddChild(ParseStatement());
+    }
+
+    //If the statement has an else clause we apply the same logic as above
+    if (UseTokenIf(emplex::Lexer::ID_ELSE)) {
+      if (UseTokenIf(emplex::Lexer::ID_BEGINSCOPE)) {
+        if_node.AddChild(ParseScope());
+      }
+      else {
+        if_node.AddChild(ParseStatement());
+      }
+    }
+
+    return if_node; 
   }
 
   ASTNode ParseWhile() {
-    ASTNode while_node(ASTNode::WHILE);
+    UseToken(emplex::Lexer::ID_WHILE);
+    UseToken(emplex::Lexer::ID_OPENPAREN);
+
+    ASTNode while_node{ASTNode::WHILE};
+
+    while_node.AddChild(ParseExpression());
+
+    UseToken(emplex::Lexer::ID_CLOSEPAREN);
+
+    //Since while loops don't need to have a body or statement we can return just the parsed expression child
+    if (UseTokenIf(emplex::Lexer::ID_SEMICOLON)) return while_node;
+
+    //If it does not end in a semi-colon we check if there is a beginscope token
+    //If there is we add a beginscope node
+    if (UseTokenIf(emplex::Lexer::ID_BEGINSCOPE)) {
+      while_node.AddChild(ParseScope());
+    }
+    //Otherwise we just parse the single statement
+    else {
+      while_node.AddChild(ParseStatement());
+    }
+
+    return while_node;
   }
 
   ASTNode ParseExpression() {
@@ -137,7 +228,7 @@ class MacroCalc {
 
   double Run(const ASTNode& node) {
   switch (node.GetType()) {
-    case ASTNode::LITERAL:
+    case ASTNode::NUMBER:
       return node.GetValue();
 
     case ASTNode::VARIABLE: {
