@@ -6,6 +6,38 @@
 #include <vector>
 #include <stdexcept>
 
+#include "lexer.hpp"
+
+// Using
+using std::string;
+using std::endl;
+
+/** 
+*  Error function. (EG)
+*  Pass in an error message with any number of arguments
+*  Example use: Error(17, "Invalid value of x; x = ", x, ".");
+*/
+template <typename... Ts>
+void Error(size_t line_num, Ts... message) 
+{
+  std::cerr << "ERROR (Line " << line_num << "): ";
+  (std::cerr << ... << message);
+  std::cerr << endl;
+  // exit with non-zero 
+  exit(1);
+}
+
+/** 
+*  Error function with token. (EG)
+*  Pass in an error message with any number of arguments
+*  Example use: Error(tokens[token_id], "Invalid value of y; y = ", y, ".");
+*/
+template <typename... Ts>
+void Error(emplex::Token token, Ts... message) 
+{
+  Error(token.line_id, message...);
+}
+
 class SymbolTable {
 private:
   // CODE TO STORE SCOPES AND VARIABLES HERE.
