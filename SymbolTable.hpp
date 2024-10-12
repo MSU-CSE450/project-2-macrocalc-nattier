@@ -11,11 +11,19 @@ private:
   // CODE TO STORE SCOPES AND VARIABLES HERE.
       // Structure to store variable information (EG)
     struct VarData {
+        std::string name;
         double value;
         size_t line_num;  // Line number for error reporting
     };
     // Stack of scopes, each scope is a map from variable name to VarData
-    std::vector<std::unordered_map<std::string, VarData>> scopes;
+    //std::vector<std::unordered_map<std::string, VarData>> scopes;
+
+    //Vector of all variables in program
+    std::vector<VarData> var_info;
+
+    //Stack of scopes with each scope being a map from variable name to it's index in var_info
+    using scope_t = std::unordered_map<std::string, size_t>;
+    std::vector<scope_t> scopes{1};
   
   // HINT: YOU CAN CONVERT EACH VARIABLE NAME TO A UNIQUE ID TO CLEANLY DEAL
   //       WITH SHADOWING AND LOOKING UP VARIABLES LATER.
@@ -69,7 +77,16 @@ public:
   }
 
   // HAVE NOT SET UP
-  size_t AddVar(std::string name, size_t line_num) { return 0; }
+  size_t AddVar(std::string name, size_t line_num) {
+    auto & scope = scopes.back();
+    if (scope.count(name)) {
+      Error(line_num, "Redeclaration of variable '", name, "'.");
+    }
+    size_t var_id = var_info.size();
+    var_info.emplace_back(name, line_num);
+    scope[name] = var_id;
+    return var_id;
+  }
 
   // Get the value of a variable by searching from top to bottom scopes (EG)
   double GetValue(const std::string &name) const {
@@ -77,7 +94,7 @@ public:
     for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
       auto varIt = it->find(name);
       if (varIt != it->end()) {
-        return varIt->second.value;
+        return var_info[varIt->second].value;
       }
     }
     throw std::runtime_error("ERROR: Undefined variable '" + name + "'.");
@@ -88,7 +105,7 @@ public:
     for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
       auto varIt = it->find(name);
       if (varIt != it->end()) {
-        varIt->second.value = value;
+        var_info[varIt->second].value = value;
         return;
       }
     }

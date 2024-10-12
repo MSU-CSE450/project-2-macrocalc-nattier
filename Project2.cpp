@@ -106,10 +106,11 @@ class MacroCalc {
       case Lexer::ID_VAR : return ParseDeclare();
       case Lexer::ID_IDENTIFIER : return ParseAssign();
       case Lexer::ID_PRINT : return ParsePrint();
-      // case Lexer::ID_IF: return ParseIf();
-      // case Lexer::ID_WHILE: return ParseWhile();
+      case Lexer::ID_IF: return ParseIf();
+      case Lexer::ID_WHILE: return ParseWhile();
+      case Lexer::ID_SEMICOLON: return ASTNode{};
       default:
-        ;
+        return ParseExpression();
       }
     }
 
@@ -143,6 +144,18 @@ class MacroCalc {
   }
 
   ASTNode ParseAssign() {
+    ASTNode assign(ASTNode::ASSIGN);
+  }
+
+  ASTNode ParseIf() {
+    ASTNode if_node(ASTNode::IF);
+  }
+
+  ASTNode ParseWhile() {
+    ASTNode while_node(ASTNode::WHILE);
+  }
+
+  ASTNode ParseExpression() {
     
   }
 
