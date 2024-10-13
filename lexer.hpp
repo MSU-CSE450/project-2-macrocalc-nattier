@@ -88,7 +88,7 @@ namespace emplex {
       /* State 59 */ {-1,-1,-1,59,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}
     }};
     // DFA stop states (0 indicates NOT a stop)
-    static constexpr std::array<int, NUM_STATES> stop_id = {0,0,234,243,0,239,0,253,252,239,243,0,0,236,249,240,250,240,251,251,251,251,251,251,255,0,254,241,251,251,251,251,251,251,251,251,251,251,251,251,251,251,251,251,251,251,251,251,240,250,236,237,237,235,235,237,242,238,243,234};
+    static constexpr std::array<int, NUM_STATES> stop_id = {0,0,234,243,0,239,0,253,252,239,243,0,0,236,250,240,251,240,244,244,244,244,244,244,255,0,254,241,244,244,244,244,248,248,244,246,246,244,244,244,249,249,245,245,244,244,247,247,240,251,236,237,237,235,235,237,242,238,243,234};
   
   public:
     constexpr static int SYMBOL_START = 2;     ///< Symbol to indicate a start of line.
@@ -143,14 +143,14 @@ namespace emplex {
     static constexpr int ID_LOGICALOP = 241;        // Regex: &&|\|\|
     static constexpr int ID_ID_EXPONENTIAL = 242;   // Regex: \*\*
     static constexpr int ID_UNARY = 243;            // Regex: [-!]
-    static constexpr int ID_VAR = 244;              // Regex: var
+    static constexpr int ID_IDENTIFIER = 244;       // Regex: [a-zA-Z_][a-zA-Z0-9_]*
     static constexpr int ID_IF = 245;               // Regex: if
-    static constexpr int ID_ELSE = 246;             // Regex: else
-    static constexpr int ID_WHILE = 247;            // Regex: while
-    static constexpr int ID_PRINT = 248;            // Regex: print
-    static constexpr int ID_SEMICOLON = 249;        // Regex: ;
-    static constexpr int ID_ASSIGN = 250;           // Regex: =
-    static constexpr int ID_IDENTIFIER = 251;       // Regex: [a-zA-Z_][a-zA-Z0-9_]*
+    static constexpr int ID_VAR = 246;              // Regex: var
+    static constexpr int ID_ELSE = 247;             // Regex: else
+    static constexpr int ID_WHILE = 248;            // Regex: while
+    static constexpr int ID_PRINT = 249;            // Regex: print
+    static constexpr int ID_SEMICOLON = 250;        // Regex: ;
+    static constexpr int ID_ASSIGN = 251;           // Regex: =
     static constexpr int ID_CLOSEPAREN = 252;       // Regex: \)
     static constexpr int ID_OPENPAREN = 253;        // Regex: \(
     static constexpr int ID_ENDSCOPE = 254;         // Regex: \}
@@ -171,14 +171,14 @@ namespace emplex {
       case 241: return "LOGICALOP";
       case 242: return "ID_EXPONENTIAL";
       case 243: return "UNARY";
-      case 244: return "VAR";
+      case 244: return "IDENTIFIER";
       case 245: return "IF";
-      case 246: return "ELSE";
-      case 247: return "WHILE";
-      case 248: return "PRINT";
-      case 249: return "SEMICOLON";
-      case 250: return "ASSIGN";
-      case 251: return "IDENTIFIER";
+      case 246: return "VAR";
+      case 247: return "ELSE";
+      case 248: return "WHILE";
+      case 249: return "PRINT";
+      case 250: return "SEMICOLON";
+      case 251: return "ASSIGN";
       case 252: return "CLOSEPAREN";
       case 253: return "OPENPAREN";
       case 254: return "ENDSCOPE";
