@@ -141,7 +141,7 @@ class MacroCalc {
 
     if (UseTokenIf(emplex::Lexer::ID_SEMICOLON)) return ASTNode{};
 
-    UseToken('=', "Expected ';' or '='.");
+    UseToken(emplex::Lexer::ID_ASSIGN, "Expected ';' or '='.");
 
     auto lhs_node = MakeVarNode(id_token);
     auto rhs_node = ParseExpression();
