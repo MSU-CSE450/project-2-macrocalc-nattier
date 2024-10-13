@@ -227,73 +227,120 @@ class MacroCalc {
   }
 
   double Run(const ASTNode& node) {
-  switch (node.GetType()) {
-    case ASTNode::NUMBER:
-      return node.GetValue();
+    switch (node.GetType()) {
+      // Return numeric literals directly
+      case ASTNode::NUMBER:
+        return node.GetValue();
 
-    case ASTNode::VARIABLE: {
-      const std::string &name = node.GetStrValue();
-      if (!symbols.HasVar(name)) {
-        Error(0, "Undefined variable '", name, "'.");
-      }
-      return symbols.GetValue(name);
-    }
-
-    case ASTNode::VAR: {
-      const std::string &name = node.GetStrValue();
-      if (symbols.HasVar(name)) {
-        Error(0, "Variable '", name, "' already declared in this scope.");
-      }
-      symbols.AddVar(name, 0.0);  // Default initialization
-      return 0.0;
-    }
-
-    case ASTNode::ASSIGN: {
-      double rhs_value = Run(node.GetChild(1));
-      const ASTNode& lhs = node.GetChild(0);
-      if (lhs.GetType() != ASTNode::VARIABLE) {
-        Error(0, "Assignment target must be a variable.");
-      }
-      symbols.SetValue(lhs.GetStrValue(), rhs_value);
-      return rhs_value;
-    }
-
-    case ASTNode::PRINT: {
-      for (const auto &child : node.GetChildren()) {
-        if (child.GetType() == ASTNode::STRING) {
-          std::cout << child.GetStrValue();
-        } else {
-          std::cout << Run(child);
+      // Retrieve and return the value of a var from the symbol table
+      case ASTNode::VARIABLE: {
+        const std::string &name = node.GetStrValue();
+        // If symbol doesnt exist (prob dont need)
+        if (!symbols.HasVar(name)) {
+          Error(0, "Undefined variable '", name, "'.");
         }
+        return symbols.GetValue(name);
       }
-      std::cout << std::endl;
-      return 0.0;
-    }
 
-    case ASTNode::IF: {
-      if (Run(node.GetChild(0)) != 0.0) {
-        return Run(node.GetChild(1));
-      } else if (node.GetChildren().size() > 2) {
-        return Run(node.GetChild(2));
+      // Handle variable declarations
+      case ASTNode::VAR: {
+        const std::string &name = node.GetStrValue();
+        if (symbols.HasVarInCurrentScope(name)) { // Prob dont need
+          Error(0, "Variable '", name, "' already declared in this scope.");
+        }
+        symbols.AddVar(name, 0.0);  // Default initialization
+        return 0.0;
       }
-      return 0.0;
-    }
 
-    case ASTNode::WHILE: {
-      while (Run(node.GetChild(0)) != 0.0) {
-        Run(node.GetChild(1));
+      // Assign the result of an EXPR to a variable
+      case ASTNode::ASSIGN: {
+        double rhs_value = Run(node.GetChild(1)); // Get RHS
+        const ASTNode& lhs = node.GetChild(0);
+        // Likely dont need this.
+        if (lhs.GetType() != ASTNode::VARIABLE) { // prob dont need
+          Error(0, "Assignment target must be a variable.");
+        }
+        symbols.SetValue(lhs.GetStrValue(), rhs_value);
+        return rhs_value;
       }
-      return 0.0;
-    }
 
-    case ASTNode::EXPR:
-      // Expression handling logic can go here, handling operations based on children. (EG)
-      return 0.0;  // Placeholder for now
+      // Handle both Strings and expressions in print (EG) 
+      // I need to test this to see if it makes sense.
+      case ASTNode::PRINT: {
+        // Loop through all the children of the node.
+        // A PRINT node can have multiple children, representing either strings or expressions.
+        for (const auto &child : node.GetChildren()) {
+            
+            // If the child is a STRING node, we need to process it as a LITERAL string.
+            if (child.GetType() == ASTNode::STRING) {
+                std::string output = child.GetStrValue(); // Get the string value of the child
+                
+                // We now check for any variables within the string that are marked by braces, like: "{something}".
+                size_t pos = 0;
+                
+                // While there are still open braces '{' in the string....
+                while ((pos = output.find('{', pos)) != std::string::npos) {
+                    // Find the closing brace '}'.
+                    size_t endPos = output.find('}', pos);
+                    
+                    // If there is no closing brace, we stop processing 
+                    if (endPos == std::string::npos) break; 
+                    
+                    // Get just the name from the brackets
+                    std::string var_name = output.substr(pos + 1, endPos - pos - 1);
+                    
+                    // Get the value from symbol table
+                    double var_value = symbols.GetValue(var_name);
+                    
+                    // Replace the "{variable}" in the string with the actual value 
+                    output.replace(pos, endPos - pos + 1, std::to_string(var_value));
+                    
+                    // Move the position forward to continue checking for more variables in the string.
+                    // Move it forward the length of the string we replaced with
+                    pos += std::to_string(var_value).length(); 
+                }
+                
+                // Output the fully processed string to the console.
+                std::cout << output;
+            } 
+            else {
+                // If the child is not a string (it's an expression then), evaluate it 
+                std::cout << Run(child);
+            }
+         }
+    
+        // After printing all children, newline
+        std::cout << std::endl;
+        return 0.0;
+      }
 
-    case ASTNode::EMPTY:
-    default:
-      return 0.0;
-    }
+      case ASTNode::IF: {
+        if (Run(node.GetChild(0)) != 0.0) {
+          return Run(node.GetChild(1)); // Run "Then" branch
+        } else if (node.GetChildren().size() > 2) {
+          return Run(node.GetChild(2)); // Run "Else" branch
+        }
+        return 0.0;
+      }
+
+      // Run while loop with repeated checks on condition
+      case ASTNode::WHILE: {
+        while (Run(node.GetChild(0)) != 0.0) { // Check condition 
+          Run(node.GetChild(1)); // Execute body
+        }
+        return 0.0;
+      }
+
+      case ASTNode::EXPR:
+        // Expression handling logic can go here, handling operations based on children. (EG)
+        return 0.0;  // Placeholder for now
+
+      // Shouldn't have any EMPTY
+      case ASTNode::EMPTY:
+      default:
+        Error(0, "Unknown node type in RUN");
+        return 0.0;
+      }
   }
 
   void Run() { Run(root); }
