@@ -107,6 +107,7 @@ class MacroCalc {
     //If the print argument is a string literal we add a node as a child
     if (CurToken() == emplex::Lexer::ID_STRINGLITERAL) {
       print_node.AddChild(ASTNode{ASTNode::STRING, CurToken().lexeme});
+      UseToken();
     }
     //If it's not as string literal it's assumed to be an expression and appended as a child
     else {
