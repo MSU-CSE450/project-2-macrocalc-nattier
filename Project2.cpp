@@ -270,10 +270,10 @@ class MacroCalc {
     else
     {
       std::string old_node = CurToken().lexeme;
-      auto cur_node = ASTNode{ASTNode::EMPTY};
+      auto cur_node = ASTNode{ASTNode::EXPR};
       int token = UseToken();
-      cur_node.SetValue(token);
-      cur_node.SetStrValue(old_node);// + " <!>");
+      cur_node.SetValue(std::stod(old_node));//token);
+      cur_node.SetStrValue(old_node);//Set it's value here too for debugging reasons  // + " <!>");
       //DebugTokenCheck();
       //DebugPrint("Nothing");
       return cur_node;
