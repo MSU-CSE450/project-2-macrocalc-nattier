@@ -1,0 +1,5 @@
+debug tree printing: 
+
+=
+ . var <!>
+ . _________

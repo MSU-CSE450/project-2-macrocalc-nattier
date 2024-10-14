@@ -224,7 +224,176 @@ class MacroCalc {
   }
 
   ASTNode ParseExpression() {
-    
+    ASTNode expressionNode =  ParseExpressionAssign();//ASTNode{ASTNode::EXPR};
+    /*while (token_id < tokens.size())
+    {
+      auto rhs = ParseExpressionAssign();
+      expressionNode.AddChild(rhs);
+    }*/
+    std::cout << "debug tree printing: " << std::endl;
+    DebugASTCheck(expressionNode, 0);
+    std::cout << "_________" << std::endl;
+    return expressionNode;
+  }
+
+  void DebugASTCheck(ASTNode test_node, int number)
+  {
+    //Should be able to display the tree when called
+
+    auto children = test_node.GetChildren();
+    int num2 = number + 1;
+    std::cout << test_node.GetStrValue() << std::endl;
+    for (int i = 0; i < number; i++)
+    {
+      std::cout << " . ";
+    }
+    for (int i = 0; i < (int)children.size(); i++)
+    {
+      DebugASTCheck(children.at(i), num2);
+    }
+  }
+
+  ASTNode ParseExpressionExponentiate() {
+    //This Needs some fixing
+
+    //Right
+    if (CurToken().lexeme == "**")
+    {
+      auto cur_node = ASTNode{ASTNode::MATH_OP};
+      int token = UseToken();
+      cur_node.SetValue(token);
+      cur_node.SetStrValue("**");
+      //DebugPrint("Exponential");
+      return cur_node;
+    }
+    else
+    {
+      std::string old_node = CurToken().lexeme;
+      auto cur_node = ASTNode{ASTNode::EXPR};
+      int token = UseToken();
+      cur_node.SetValue(token);
+      cur_node.SetStrValue(CurToken().lexeme + " <!>");
+      //DebugTokenCheck();
+      //DebugPrint("Nothing");
+      return cur_node;//ASTNode{ASTNode::EXPR};
+    }
+  }
+
+  ASTNode ParseExpressionMultDivMod() {
+    //Left
+    ASTNode lhs = ParseExpressionExponentiate();
+    while (CurToken().lexeme == "*" || CurToken().lexeme == "/" || CurToken().lexeme == "%")
+    {
+      std::string lexeme_old = CurToken().lexeme;
+      int token = UseToken();
+      ASTNode rhs = ParseExpressionExponentiate();
+      lhs = ASTNode{ASTNode::MATH_OP, lhs, rhs};
+      lhs.SetValue(token);
+      lhs.SetStrValue(lexeme_old);
+      //DebugPrint(lexeme_old);
+    }
+    return lhs;
+  }
+
+  ASTNode ParseExpressionAddSub() {
+    //Left
+    ASTNode lhs = ParseExpressionMultDivMod();
+    while (CurToken().lexeme == "+" || CurToken().lexeme == "-")
+    {
+      std::string lexeme_old = CurToken().lexeme;
+      int token = UseToken();
+      ASTNode rhs = ParseExpressionMultDivMod();
+      lhs = ASTNode{ASTNode::MATH_OP, lhs, rhs};
+      lhs.SetValue(token);
+      lhs.SetStrValue(lexeme_old);
+      //DebugPrint(lexeme_old);
+    }
+    return lhs;
+  }
+
+  ASTNode ParseExpressionCompare() {
+    //This might need some fixing
+    //None
+    ASTNode lhs = ParseExpressionAddSub();
+    while (CurToken().lexeme == ">" || CurToken().lexeme == "<" || CurToken().lexeme == ">=" || CurToken().lexeme == "<=") {
+      std::string lexeme_old = CurToken().lexeme;
+      int token = UseToken();
+      ASTNode rhs = ParseExpressionAddSub();
+      lhs = ASTNode{ASTNode::COMP_OP, lhs, rhs};
+      lhs.SetValue(token);
+      lhs.SetStrValue(lexeme_old);
+      //DebugPrint(lexeme_old);
+    }
+    return lhs;
+  }
+  
+  ASTNode ParseExpressionEquality() {
+    //This may need some fixing
+    //None
+    ASTNode lhs = ParseExpressionCompare();
+    while (CurToken().lexeme == "!=" || CurToken().lexeme == "==") {
+      std::string lexeme_old = CurToken().lexeme;
+      int token = UseToken();
+      ASTNode rhs = ParseExpressionCompare();
+      lhs = ASTNode{ASTNode::COMP_OP, lhs, rhs};
+      lhs.SetValue(token);
+      lhs.SetStrValue(lexeme_old);
+      //DebugPrint(lexeme_old);
+    }
+    return lhs;
+  }
+
+  ASTNode ParseExpressionAnd() {
+    //This might need some fixing
+    //Left
+    ASTNode lhs = ParseExpressionEquality();
+    if (CurToken().lexeme == "&&") {
+      int token = UseToken();
+      ASTNode rhs = ParseExpressionEquality();
+      lhs = ASTNode{ASTNode::EXPR, lhs, rhs};
+      lhs.SetValue(token);
+      lhs.SetStrValue("&&");
+      //DebugPrint("left and");
+    }
+    return lhs;
+  }
+
+  ASTNode ParseExpressionOr() {
+    //Left
+    ASTNode lhs = ParseExpressionAnd();
+
+    if (CurToken().lexeme == "||") {
+      int token = UseToken();
+      ASTNode rhs = ParseExpressionAnd();
+      lhs = ASTNode{ASTNode::EXPR, lhs, rhs};
+      lhs.SetValue(token);
+      lhs.SetStrValue("||");
+      //DebugPrint("left or");
+    }
+    return lhs;
+  }
+
+  ASTNode ParseExpressionAssign() {
+    //Right
+    ASTNode lhs = ParseExpressionOr();
+    if (CurToken().lexeme == ";")
+    {      
+      ASTNode rhs = ParseExpressionAssign();  // Right associative.
+      //DebugPrint("right assign");
+      lhs.SetStrValue("=");
+      return ASTNode(ASTNode::ASSIGN, lhs, rhs);
+    }
+    return lhs;
+  }
+
+
+  void DebugTokenCheck()
+  {
+    //DebugPrint(CurToken().lexeme);
+  }
+  void DebugPrint(std::string type)
+  {
+    std::cout << type << std::endl;
   }
 
   double Run(const ASTNode& node) {
@@ -333,6 +502,15 @@ class MacroCalc {
       }
 
       case ASTNode::EXPR:
+        // Expression handling logic can go here, handling operations based on children. (EG)
+        return 0.0;  // Placeholder for now
+
+      case ASTNode::MATH_OP:
+        // Expression handling logic can go here, handling operations based on children. (EG)
+        
+        return 0.0;  // Placeholder for now
+
+      case ASTNode::COMP_OP:
         // Expression handling logic can go here, handling operations based on children. (EG)
         return 0.0;  // Placeholder for now
 

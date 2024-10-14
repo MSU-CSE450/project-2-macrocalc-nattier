@@ -30,6 +30,8 @@ public:
     IF,
     WHILE,
     EXPR,
+    MATH_OP,
+    COMP_OP,
   };
 
 private:
