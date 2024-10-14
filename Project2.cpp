@@ -408,18 +408,18 @@ class MacroCalc {
       case ASTNode::VARIABLE: {
         const std::string &name = node.GetStrValue();
         // If symbol doesnt exist (prob dont need)
-        if (!symbols.HasVar(name)) {
-          Error(0, "Undefined variable '", name, "'.");
-        }
+        //if (!symbols.HasVar(name)) {
+        //  Error(0, "Undefined variable '", name, "'.");
+        //}
         return symbols.GetValue(name);
       }
 
       // Handle variable declarations
       case ASTNode::VAR: {
         const std::string &name = node.GetStrValue();
-        if (symbols.HasVarInCurrentScope(name)) { // Prob dont need
-          Error(0, "Variable '", name, "' already declared in this scope.");
-        }
+        //if (symbols.HasVarInCurrentScope(name)) { // Prob dont need
+        //  Error(0, "Variable '", name, "' already declared in this scope.");
+        //}
         symbols.AddVar(name, 0.0);  // Default initialization
         return 0.0;
       }
@@ -429,9 +429,9 @@ class MacroCalc {
         double rhs_value = Run(node.GetChild(1)); // Get RHS
         const ASTNode& lhs = node.GetChild(0);
         // Likely dont need this.
-        if (lhs.GetType() != ASTNode::VARIABLE) { // prob dont need
-          Error(0, "Assignment target must be a variable.");
-        }
+        //if (lhs.GetType() != ASTNode::VARIABLE) { // prob dont need
+        //  Error(0, "Assignment target must be a variable.");
+        //}
         symbols.SetValue(lhs.GetStrValue(), rhs_value);
         return rhs_value;
       }
@@ -519,7 +519,6 @@ class MacroCalc {
       // Shouldn't have any EMPTY
       case ASTNode::EMPTY:
       default:
-        Error(0, "Unknown node type in RUN");
         return 0.0;
       }
   }
