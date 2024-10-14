@@ -398,9 +398,98 @@ class MacroCalc {
     std::cout << type << std::endl;
   }
 
+double EvaluateExpression(const ASTNode& node) {
+  switch (node.GetType()) {
+    // Return the value of a number
+    case ASTNode::NUMBER:
+      return node.GetValue();
+    // Return value from symbol table
+    case ASTNode::VARIABLE:
+      return symbols.GetValue(node.GetStrValue());
+    // Handle math_op separately 
+    case ASTNode::MATH_OP:
+      return EvaluateMathOp(node);
+    // Handle comp_op separately
+    case ASTNode::COMP_OP:
+      return EvaluateCompOp(node);
+    // Handle Logic ops separately
+    case ASTNode::EXPR:
+      return EvaluateLogicalOp(node);
+
+    default:
+      Error(0, "Unexpected expression node type.");
+      return 0.0;
+    }
+}
+
+// Func to handle (+,*,/,-,%,**)
+double EvaluateMathOp(const ASTNode& node) {
+  // Get both child nodes
+  const double lhs = EvaluateExpression(node.GetChild(0));
+  const double rhs = EvaluateExpression(node.GetChild(1));
+
+  if (node.GetStrValue() == "+") {
+    return lhs + rhs;
+  } else if (node.GetStrValue() == "-") {
+    return lhs - rhs;
+  } else if (node.GetStrValue() == "*") {
+    return lhs * rhs;
+  } else if (node.GetStrValue() == "/") {
+    if (rhs == 0.0) Error(0, "Division by zero.");
+    return lhs / rhs;
+  } else if (node.GetStrValue() == "%") {
+    if (rhs == 0.0) Error(0, "Modulus by zero.");
+    return static_cast<int>(lhs) % static_cast<int>(rhs);
+  } else if (node.GetStrValue() == "**") {
+    return pow(lhs, rhs);
+  }
+
+  Error(0, "Unknown math operator '", node.GetStrValue(), "'.");
+  return 0.0;
+  }
+
+  double EvaluateCompOp(const ASTNode& node) {
+    const double lhs = EvaluateExpression(node.GetChild(0));
+    const double rhs = EvaluateExpression(node.GetChild(1));
+
+    if (node.GetStrValue() == "<") {
+      return lhs < rhs ? 1.0 : 0.0;
+    } else if (node.GetStrValue() == "<=") {
+      return lhs <= rhs ? 1.0 : 0.0;
+    } else if (node.GetStrValue() == ">") {
+      return lhs > rhs ? 1.0 : 0.0;
+    } else if (node.GetStrValue() == ">=") {
+      return lhs >= rhs ? 1.0 : 0.0;
+    } else if (node.GetStrValue() == "==") {
+      return lhs == rhs ? 1.0 : 0.0;
+    } else if (node.GetStrValue() == "!=") {
+      return lhs != rhs ? 1.0 : 0.0;
+    }
+
+    Error(0, "Unknown comparison operator '", node.GetStrValue(), "'.");
+    return 0.0;
+  }
+
+  // Func for logical operations
+  double EvaluateLogicalOp(const ASTNode& node) {
+    // Only grab lhs incase we short-circuit
+    const double lhs = EvaluateExpression(node.GetChild(0));
+    
+    if (node.GetStrValue() == "&&") {
+      if (lhs == 0.0) return 0.0;  // Short-circuit if lhs is false
+      return EvaluateExpression(node.GetChild(1)) != 0.0 ? 1.0 : 0.0;
+    } else if (node.GetStrValue() == "||") {
+      if (lhs != 0.0) return 1.0;  // Short-circuit if lhs is true
+      return EvaluateExpression(node.GetChild(1)) != 0.0 ? 1.0 : 0.0;
+    }
+
+    Error(0, "Unknown logical operator '", node.GetStrValue(), "'.");
+    return 0.0;
+  }
+
   double Run(const ASTNode& node) {
     switch (node.GetType()) {
-      // Return numeric literals directly
+      // Return numeric values directly
       case ASTNode::NUMBER:
         return node.GetValue();
 
@@ -488,7 +577,7 @@ class MacroCalc {
 
       case ASTNode::IF: {
         if (Run(node.GetChild(0)) != 0.0) {
-          return Run(node.GetChild(1)); // Run "Then" branch
+          return Run(node.GetChild(1)); // Run "IF" branch
         } else if (node.GetChildren().size() > 2) {
           return Run(node.GetChild(2)); // Run "Else" branch
         }
@@ -504,17 +593,15 @@ class MacroCalc {
       }
 
       case ASTNode::EXPR:
-        // Expression handling logic can go here, handling operations based on children. (EG)
-        return 0.0;  // Placeholder for now
+        return EvaluateExpression(node);
 
       case ASTNode::MATH_OP:
-        // Expression handling logic can go here, handling operations based on children. (EG)
-        
-        return 0.0;  // Placeholder for now
+        // HANDLED IN EXPR        
+        return 0.0; 
 
       case ASTNode::COMP_OP:
-        // Expression handling logic can go here, handling operations based on children. (EG)
-        return 0.0;  // Placeholder for now
+        // HANDLED IN EXPR
+        return 0.0;  // SHOULD BE SAFE TO REMOVE
 
       // Shouldn't have any EMPTY
       case ASTNode::EMPTY:
@@ -546,4 +633,3 @@ int main(int argc, char * argv[])
   mc.Run();
   
 }
-
