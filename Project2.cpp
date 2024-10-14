@@ -230,9 +230,9 @@ class MacroCalc {
       auto rhs = ParseExpressionAssign();
       expressionNode.AddChild(rhs);
     }*/
-    std::cout << "debug tree printing: " << std::endl;
-    DebugASTCheck(expressionNode, 0);
-    std::cout << "_________" << std::endl;
+    //std::cout << "debug tree printing: " << std::endl;
+    DebugASTCheck(expressionNode, 0); //Remove when printing is ready
+    //std::cout << "_________" << std::endl;
     return expressionNode;
   }
 
@@ -242,11 +242,12 @@ class MacroCalc {
 
     auto children = test_node.GetChildren();
     int num2 = number + 1;
-    std::cout << test_node.GetStrValue() << std::endl;
+
     for (int i = 0; i < number; i++)
     {
       std::cout << " . ";
     }
+    std::cout << test_node.GetStrValue() << std::endl;
     for (int i = 0; i < (int)children.size(); i++)
     {
       DebugASTCheck(children.at(i), num2);
@@ -269,13 +270,13 @@ class MacroCalc {
     else
     {
       std::string old_node = CurToken().lexeme;
-      auto cur_node = ASTNode{ASTNode::EXPR};
+      auto cur_node = ASTNode{ASTNode::EMPTY};
       int token = UseToken();
       cur_node.SetValue(token);
-      cur_node.SetStrValue(CurToken().lexeme + " <!>");
+      cur_node.SetStrValue(old_node);// + " <!>");
       //DebugTokenCheck();
       //DebugPrint("Nothing");
-      return cur_node;//ASTNode{ASTNode::EXPR};
+      return cur_node;
     }
   }
 
@@ -302,6 +303,7 @@ class MacroCalc {
     {
       std::string lexeme_old = CurToken().lexeme;
       int token = UseToken();
+      
       ASTNode rhs = ParseExpressionMultDivMod();
       lhs = ASTNode{ASTNode::MATH_OP, lhs, rhs};
       lhs.SetValue(token);
@@ -376,11 +378,11 @@ class MacroCalc {
   ASTNode ParseExpressionAssign() {
     //Right
     ASTNode lhs = ParseExpressionOr();
-    if (CurToken().lexeme == ";")
+    if (CurToken().lexeme == "=")
     {      
       ASTNode rhs = ParseExpressionAssign();  // Right associative.
       //DebugPrint("right assign");
-      lhs.SetStrValue("=");
+      rhs.SetStrValue("=");
       return ASTNode(ASTNode::ASSIGN, lhs, rhs);
     }
     return lhs;

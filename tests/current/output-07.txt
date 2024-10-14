@@ -1,5 +1,1 @@
-debug tree printing: 
-
-=
- . print <!>
- . _________
+5

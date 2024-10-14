@@ -1,5 +1,1 @@
-debug tree printing: 
-
-=
- . var <!>
- . _________
+12
