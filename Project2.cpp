@@ -645,9 +645,26 @@ double EvaluateMathOp(const ASTNode& node) {
           }
         }
 
-      case ASTNode::COMP_OP:
-        // HANDLED IN EXPR
-        return 0.0;  // SHOULD BE SAFE TO REMOVE
+      case ASTNode::COMP_OP: {
+        // Evaluate left and right sub-expressions first (recursion)
+        double lhs_value = Run(node.GetChild(0));
+        double rhs_value = Run(node.GetChild(1));
+
+        const std::string &op = node.GetStrValue();
+
+        if (op == "<") return lhs_value < rhs_value ? 1.0 : 0.0;
+        else if (op == "<=") return lhs_value <= rhs_value ? 1.0 : 0.0;
+        else if (op == ">") return lhs_value > rhs_value ? 1.0 : 0.0;
+        else if (op == ">=") return lhs_value >= rhs_value ? 1.0 : 0.0;
+        else if (op == "==") return lhs_value == rhs_value ? 1.0 : 0.0;
+        else if (op == "!=") return lhs_value != rhs_value ? 1.0 : 0.0;
+        else {
+            std::cerr << "ERROR: Unknown operator '" << op << "'." << std::endl;
+            exit(1);
+        }
+      }
+
+
 
       // Shouldn't have any EMPTY
       case ASTNode::EMPTY:
