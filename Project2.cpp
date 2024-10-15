@@ -256,32 +256,48 @@ class MacroCalc {
     }
   }
 
-  ASTNode ParseExpressionValue()
-  {
-      auto old_node = CurToken();
+  ASTNode ParseExpressionValue() {
+    // Check for unary minus (negative number)
+    bool isNegative = false;
+    if (CurToken().lexeme == "-") {
+      isNegative = true;
+      UseToken(); // Consume the '-'
+    }
 
-      auto cur_node = ASTNode{ASTNode::EXPR};
-      if (old_node.id == emplex::Lexer::ID_IDENTIFIER)
-      {
-        cur_node = ASTNode{ASTNode::VARIABLE};
-        int token = UseToken();
-        cur_node.SetStrValue(old_node.lexeme);//Set it's value here too for debugging reasons  // + " <!>");
-        cur_node.SetVarID(symbols.GetVarID(old_node.lexeme));
-        //cur_node.SetStrValue(old_node);//Set it's value here too for debugging reasons  // + " <!>");
+    // Get the current token to determine if it's an identifier or a number
+    auto old_node = CurToken();
+    ASTNode cur_node;
+
+    if (old_node.id == emplex::Lexer::ID_IDENTIFIER) {
+      // The token is an identifier, so treat it as a VARIABLE node
+      cur_node = ASTNode{ASTNode::VARIABLE};
+      UseToken();  // Consume the identifier token
+
+      // Set the name of the variable in the AST node
+      cur_node.SetStrValue(old_node.lexeme);
+
+      // Check if the variable is declared in the symbol table
+      if (!symbols.HasVar(old_node.lexeme)) {
+        // Throw an error if the variable is undeclared (hopefully)
+        Error(old_node.line_id, "Undeclared variable '", old_node.lexeme, "' used in expression.");
       }
-      else
-      {
-        cur_node = ASTNode{ASTNode::NUMBER};
-        int token = UseToken();
-        cur_node.SetValue(std::stod(old_node.lexeme));//token);
-        //Identifier
-        //cur_node.SetValue(std::stod(old_node));//token);
-      }
+      
+      // Store the variable's ID for further reference if needed?
+      cur_node.SetVarID(symbols.GetVarID(old_node.lexeme));
+    } else if (old_node.id == emplex::Lexer::ID_INT || old_node.id == emplex::Lexer::ID_FLOAT) {
+      // The token is a numeric literal, so treat it as a NUMBER node
+      cur_node = ASTNode{ASTNode::NUMBER};
+      UseToken();  // Consume the number token
 
+      // Parse the lexeme as a double, applying the negative sign if necessary
+      double value = std::stod(old_node.lexeme);
+      cur_node.SetValue(isNegative ? -value : value);
+    } else {
+      // If the token is neither an identifier nor a number, it's an error
+      Error(old_node.line_id, "Expected a variable or number but found '", old_node.lexeme, "'.");
+    }
 
-      //DebugTokenCheck();
-      //DebugPrint("Nothing");
-      return cur_node;
+    return cur_node;  // Return the constructed node
   }
 
   ASTNode ParseExpressionExponentiate() {
@@ -482,8 +498,7 @@ double EvaluateMathOp(const ASTNode& node) {
   return 0.0;
   }
 
-  // No longer used and marked for deletion
-  
+  // No longer used and marked for deletion?
   double EvaluateCompOp(const ASTNode& node) {
     const double lhs = EvaluateExpression(node.GetChild(0));
     const double rhs = EvaluateExpression(node.GetChild(1));
@@ -676,8 +691,8 @@ double EvaluateMathOp(const ASTNode& node) {
         else if (op == "==") return lhs_value == rhs_value ? 1.0 : 0.0;
         else if (op == "!=") return lhs_value != rhs_value ? 1.0 : 0.0;
         else {
-            std::cerr << "ERROR: Unknown operator '" << op << "'." << std::endl;
-            exit(1);
+          std::cerr << "ERROR: Unknown operator '" << op << "'." << std::endl;
+          exit(1);
         }
       }
 
@@ -713,4 +728,3 @@ int main(int argc, char * argv[])
   mc.Run();
   
 }
-
