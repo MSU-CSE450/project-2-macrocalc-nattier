@@ -1,2 +1,4 @@
-10
-1000
+"Monday"
+"Tuesday"
+"Wednesday"
+"done"

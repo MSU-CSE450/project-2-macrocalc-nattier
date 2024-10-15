@@ -46,6 +46,9 @@ private:
         std::string name;
         double value;
         size_t line_num;  // Line number for error reporting
+
+        VarData(std::string name, size_t line_num)
+      : name(name), line_num(line_num) { }
     };
     // Stack of scopes, each scope is a map from variable name to VarData
     //std::vector<std::unordered_map<std::string, VarData>> scopes;

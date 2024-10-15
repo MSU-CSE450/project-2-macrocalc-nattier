@@ -108,6 +108,6 @@ public:
   // value setters
   void SetValue(double in) { value = in; }
   void SetStrValue(const std::string &in) { str_value = in; }
-  void SetVarID(size_t var_id) { var_id = var_id; }
+  void SetVarID(size_t var_id) { this->var_id = var_id; }
 
 };
