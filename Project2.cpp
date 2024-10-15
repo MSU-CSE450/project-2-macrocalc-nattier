@@ -121,6 +121,8 @@ class MacroCalc {
   }
 
   ASTNode ParseScope() {
+    UseToken(emplex::Lexer::ID_BEGINSCOPE);
+
     ASTNode scope(ASTNode::SCOPE);
 
     symbols.PushScope();
@@ -277,6 +279,7 @@ class MacroCalc {
         cur_node = ASTNode{ASTNode::VARIABLE};
         int token = UseToken();
         cur_node.SetStrValue(old_node.lexeme);//Set it's value here too for debugging reasons  // + " <!>");
+        cur_node.SetVarID(symbols.GetVarID(old_node.lexeme));
         //cur_node.SetStrValue(old_node);//Set it's value here too for debugging reasons  // + " <!>");
       }
       else
@@ -511,17 +514,19 @@ double EvaluateMathOp(const ASTNode& node) {
       }
 
       // Return numeric values directly
-      case ASTNode::NUMBER:
+      case ASTNode::NUMBER: {
         return node.GetValue();
+      }
 
       // Retrieve and return the value of a var from the symbol table
       case ASTNode::VARIABLE: {
-        const std::string &name = node.GetStrValue();
+        const size_t var_id = node.GetVarID();
         // If symbol doesnt exist (prob dont need)
         //if (!symbols.HasVar(name)) {
         //  Error(0, "Undefined variable '", name, "'.");
         //}
-        return symbols.GetValue(name);
+        auto test = symbols.VarValue(var_id).value;
+        return symbols.VarValue(var_id).value;
       }
 
       // Handle variable declarations
@@ -538,8 +543,7 @@ double EvaluateMathOp(const ASTNode& node) {
       case ASTNode::ASSIGN: {
         double rhs_value = Run(node.GetChild(1)); // Get RHS
         const ASTNode& lhs = node.GetChild(0);
-        auto var = symbols.VarValue(lhs.GetVarID());
-        symbols.SetValue(var.name, rhs_value);
+        symbols.SetVarValue(lhs.GetVarID(), rhs_value);
         return rhs_value;
       }
 
@@ -578,8 +582,10 @@ double EvaluateMathOp(const ASTNode& node) {
                     // Move it forward the length of the string we replaced with
                     pos += std::to_string(var_value).length(); 
                 }
-                
-                // Output the fully processed string to the console.
+                //Remove "" from string
+                std::erase(output, '"');
+
+                //Output processes string
                 std::cout << output;
             } 
             else {

@@ -1,4 +1,8 @@
-// Create and set a variable.
-var ten = 10;
-var five = 5;
-print(ten + five);
+// Try making a block
+var x = 1;
+{
+  print(x);
+  print("second printing.");
+  x = 3;
+}
+print(x);

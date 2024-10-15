@@ -105,6 +105,10 @@ public:
     return var_info[id];
   }
 
+  void SetVarValue(size_t id, double val) {
+    var_info[id].value = val;
+  }
+
   // Push a new scope onto the stack (EG)
   void PushScope() {
     scopes.emplace_back();

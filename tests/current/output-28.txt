@@ -1,4 +1,0 @@
-"Monday"
-"Tuesday"
-"Wednesday"
-"done"
