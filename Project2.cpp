@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <unordered_map>
 #include <set>
 #include <vector>
@@ -600,13 +601,16 @@ double EvaluateMathOp(const ASTNode& node) {
                     
                     // Get the value from symbol table
                     double var_value = symbols.GetValue(var_name);
+
+                    std::ostringstream oss;
+                    oss << var_value;
                     
                     // Replace the "{variable}" in the string with the actual value 
-                    output.replace(pos, endPos - pos + 1, std::to_string(var_value));
+                    output.replace(pos, endPos - pos + 1, oss.str());
                     
                     // Move the position forward to continue checking for more variables in the string.
                     // Move it forward the length of the string we replaced with
-                    pos += std::to_string(var_value).length(); 
+                    pos += oss.str().length();
                 }
                 //Remove "" from string
                 std::erase(output, '"');
