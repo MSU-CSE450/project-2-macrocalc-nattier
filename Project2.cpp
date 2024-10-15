@@ -292,10 +292,12 @@ class MacroCalc {
     if (CurToken().lexeme == "**")
     {
       int token = UseToken();
-      ASTNode rhs = ParseExpressionValue();
-      lhs = ASTNode{ASTNode::MATH_OP, lhs, rhs};
-      lhs.SetValue(token);
-      lhs.SetStrValue("**");
+      ASTNode rhs = ParseExpressionExponentiate(); // Recurse down the right
+      ASTNode resultNode{ASTNode::MATH_OP, lhs, rhs};
+      resultNode.SetValue(token);  // Optional, depending on how SetValue is used in your code
+      resultNode.SetStrValue("**");
+      
+      return resultNode;
       //DebugPrint("Exponential");
     }
     return lhs;
@@ -419,6 +421,7 @@ class MacroCalc {
     std::cout << type << std::endl;
   }
 
+// No longer used and marked for deletion
 double EvaluateExpression(const ASTNode& node) {
   switch (node.GetType()) {
     // Return the value of a number
@@ -443,7 +446,7 @@ double EvaluateExpression(const ASTNode& node) {
     }
 }
 
-// Func to handle (+,*,/,-,%,**)
+// No longer used and marked for deletion
 double EvaluateMathOp(const ASTNode& node) {
   // Get both child nodes
   const double lhs = EvaluateExpression(node.GetChild(0));
@@ -469,6 +472,8 @@ double EvaluateMathOp(const ASTNode& node) {
   return 0.0;
   }
 
+  // No longer used and marked for deletion
+  
   double EvaluateCompOp(const ASTNode& node) {
     const double lhs = EvaluateExpression(node.GetChild(0));
     const double rhs = EvaluateExpression(node.GetChild(1));
@@ -491,7 +496,7 @@ double EvaluateMathOp(const ASTNode& node) {
     return 0.0;
   }
 
-  // Func for logical operations
+  // No longer used and marked for deletion
   double EvaluateLogicalOp(const ASTNode& node) {
     // Only grab lhs incase we short-circuit
     const double lhs = EvaluateExpression(node.GetChild(0));
@@ -524,20 +529,13 @@ double EvaluateMathOp(const ASTNode& node) {
       // Retrieve and return the value of a var from the symbol table
       case ASTNode::VARIABLE: {
         const size_t var_id = node.GetVarID();
-        // If symbol doesnt exist (prob dont need)
-        //if (!symbols.HasVar(name)) {
-        //  Error(0, "Undefined variable '", name, "'.");
-        //}
         auto test = symbols.VarValue(var_id).value;
         return symbols.VarValue(var_id).value;
       }
 
-      // Handle variable declarations
+      // Handle variable declarations by adding to symbol table
       case ASTNode::VAR: {
         const std::string &name = node.GetStrValue();
-        //if (symbols.HasVarInCurrentScope(name)) { // Prob dont need
-        //  Error(0, "Variable '", name, "' already declared in this scope.");
-        //}
         symbols.AddVar(name, 0.0);  // Default initialization
         return 0.0;
       }
@@ -658,9 +656,9 @@ double EvaluateMathOp(const ASTNode& node) {
         // Evaluate left and right sub-expressions first (recursion)
         double lhs_value = Run(node.GetChild(0));
         double rhs_value = Run(node.GetChild(1));
-
+        // Get the op
         const std::string &op = node.GetStrValue();
-
+        // Run T/F based on lhs and rhs, return 1.0 (T) or 0.0 (F)
         if (op == "<") return lhs_value < rhs_value ? 1.0 : 0.0;
         else if (op == "<=") return lhs_value <= rhs_value ? 1.0 : 0.0;
         else if (op == ">") return lhs_value > rhs_value ? 1.0 : 0.0;
@@ -673,10 +671,10 @@ double EvaluateMathOp(const ASTNode& node) {
         }
       }
 
-
-
       // Shouldn't have any EMPTY
       case ASTNode::EMPTY:
+        std::cerr << "ERROR: Detected EMPTY node" << std::endl;
+
       default:
         return 0.0;
       }
@@ -705,4 +703,3 @@ int main(int argc, char * argv[])
   mc.Run();
   
 }
-
