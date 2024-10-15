@@ -402,7 +402,7 @@ class MacroCalc {
     if (CurToken().lexeme == "&&") {
       int token = UseToken();
       ASTNode rhs = ParseExpressionEquality();
-      lhs = ASTNode{ASTNode::EXPR, lhs, rhs};
+      lhs = ASTNode{ASTNode::LOGICAL_OP, lhs, rhs};
       lhs.SetValue(token);
       lhs.SetStrValue("&&");
       //DebugPrint("left and");
@@ -417,7 +417,7 @@ class MacroCalc {
     if (CurToken().lexeme == "||") {
       int token = UseToken();
       ASTNode rhs = ParseExpressionAnd();
-      lhs = ASTNode{ASTNode::EXPR, lhs, rhs};
+      lhs = ASTNode{ASTNode::LOGICAL_OP, lhs, rhs};
       lhs.SetValue(token);
       lhs.SetStrValue("||");
       //DebugPrint("left or");
@@ -449,97 +449,6 @@ class MacroCalc {
   void DebugPrint(std::string type)
   {
     std::cout << type << std::endl;
-  }
-
-// No longer used and marked for deletion
-double EvaluateExpression(const ASTNode& node) {
-  switch (node.GetType()) {
-    // Return the value of a number
-    case ASTNode::NUMBER:
-      return node.GetValue();
-    // Return value from symbol table
-    case ASTNode::VARIABLE:
-      return symbols.GetValue(node.GetStrValue());
-    // Handle math_op separately 
-    case ASTNode::MATH_OP:
-      return EvaluateMathOp(node);
-    // Handle comp_op separately
-    case ASTNode::COMP_OP:
-      return EvaluateCompOp(node);
-    // Handle Logic ops separately
-    case ASTNode::EXPR:
-      return EvaluateLogicalOp(node);
-
-    default:
-      Error(0, "Unexpected expression node type.");
-      return 0.0;
-    }
-}
-
-// No longer used and marked for deletion
-double EvaluateMathOp(const ASTNode& node) {
-  // Get both child nodes
-  const double lhs = EvaluateExpression(node.GetChild(0));
-  const double rhs = EvaluateExpression(node.GetChild(1));
-
-  if (node.GetStrValue() == "+") {
-    return lhs + rhs;
-  } else if (node.GetStrValue() == "-") {
-    return lhs - rhs;
-  } else if (node.GetStrValue() == "*") {
-    return lhs * rhs;
-  } else if (node.GetStrValue() == "/") {
-    if (rhs == 0.0) Error(0, "Division by zero.");
-    return lhs / rhs;
-  } else if (node.GetStrValue() == "%") {
-    if (rhs == 0.0) Error(0, "Modulus by zero.");
-    return static_cast<int>(lhs) % static_cast<int>(rhs);
-  } else if (node.GetStrValue() == "**") {
-    return pow(lhs, rhs);
-  }
-
-  Error(0, "Unknown math operator '", node.GetStrValue(), "'.");
-  return 0.0;
-  }
-
-  // No longer used and marked for deletion?
-  double EvaluateCompOp(const ASTNode& node) {
-    const double lhs = EvaluateExpression(node.GetChild(0));
-    const double rhs = EvaluateExpression(node.GetChild(1));
-
-    if (node.GetStrValue() == "<") {
-      return lhs < rhs ? 1.0 : 0.0;
-    } else if (node.GetStrValue() == "<=") {
-      return lhs <= rhs ? 1.0 : 0.0;
-    } else if (node.GetStrValue() == ">") {
-      return lhs > rhs ? 1.0 : 0.0;
-    } else if (node.GetStrValue() == ">=") {
-      return lhs >= rhs ? 1.0 : 0.0;
-    } else if (node.GetStrValue() == "==") {
-      return lhs == rhs ? 1.0 : 0.0;
-    } else if (node.GetStrValue() == "!=") {
-      return lhs != rhs ? 1.0 : 0.0;
-    }
-
-    Error(0, "Unknown comparison operator '", node.GetStrValue(), "'.");
-    return 0.0;
-  }
-
-  // No longer used and marked for deletion
-  double EvaluateLogicalOp(const ASTNode& node) {
-    // Only grab lhs incase we short-circuit
-    const double lhs = EvaluateExpression(node.GetChild(0));
-    
-    if (node.GetStrValue() == "&&") {
-      if (lhs == 0.0) return 0.0;  // Short-circuit if lhs is false
-      return EvaluateExpression(node.GetChild(1)) != 0.0 ? 1.0 : 0.0;
-    } else if (node.GetStrValue() == "||") {
-      if (lhs != 0.0) return 1.0;  // Short-circuit if lhs is true
-      return EvaluateExpression(node.GetChild(1)) != 0.0 ? 1.0 : 0.0;
-    }
-
-    Error(0, "Unknown logical operator '", node.GetStrValue(), "'.");
-    return 0.0;
   }
 
   double Run(const ASTNode& node) {
@@ -649,8 +558,21 @@ double EvaluateMathOp(const ASTNode& node) {
         return 0.0;
       }
 
-      case ASTNode::EXPR:
-        return EvaluateExpression(node);
+      case ASTNode::LOGICAL_OP: {
+        // Only grab lhs incase we short-circuit
+        const double lhs = Run(node.GetChild(0));
+        
+        if (node.GetStrValue() == "&&") {
+          if (lhs == 0.0) return 0.0;  // Short-circuit if lhs is false
+          return Run(node.GetChild(1)) != 0.0 ? 1.0 : 0.0;
+        } else if (node.GetStrValue() == "||") {
+          if (lhs != 0.0) return 1.0;  // Short-circuit if lhs is true
+          return Run(node.GetChild(1)) != 0.0 ? 1.0 : 0.0;
+        }
+
+        Error(0, "Unknown logical operator '", node.GetStrValue(), "'.");
+        return 0.0;
+      }
 
 
       case ASTNode::MATH_OP: {
