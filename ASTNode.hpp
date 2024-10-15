@@ -32,7 +32,8 @@ public:
     EXPR,
     MATH_OP,
     COMP_OP,
-    LOGICAL_OP
+    LOGICAL_OP,
+    MODIFIER
   };
 
 private:

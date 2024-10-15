@@ -257,19 +257,25 @@ class MacroCalc {
     }
   }
 
-  ASTNode ParseExpressionValue() {
+ASTNode ParseExpressionValue() {
     // Check for unary minus (negative number)
-    bool isNegative = false;
+    /*bool isNegative = false;
     if (CurToken().lexeme == "-") {
       isNegative = true;
       UseToken(); // Consume the '-'
-    }
+    }*/
 
     // Get the current token to determine if it's an identifier or a number
     auto old_node = CurToken();
     ASTNode cur_node;
-
-    if (old_node.id == emplex::Lexer::ID_IDENTIFIER) {
+    
+    if (old_node.lexeme == "!" || old_node.lexeme == "-")
+    {
+      cur_node = ASTNode{ASTNode::MODIFIER};
+      UseToken();
+      cur_node.AddChild(ParseExpressionValue());
+    }
+    else if (old_node.id == emplex::Lexer::ID_IDENTIFIER) {
       // The token is an identifier, so treat it as a VARIABLE node
       cur_node = ASTNode{ASTNode::VARIABLE};
       UseToken();  // Consume the identifier token
@@ -292,7 +298,7 @@ class MacroCalc {
 
       // Parse the lexeme as a double, applying the negative sign if necessary
       double value = std::stod(old_node.lexeme);
-      cur_node.SetValue(isNegative ? -value : value);
+      cur_node.SetValue(value);
     } else {
       // If the token is neither an identifier nor a number, it's an error
       Error(old_node.line_id, "Expected a variable or number but found '", old_node.lexeme, "'.");
