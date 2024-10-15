@@ -146,7 +146,7 @@ class MacroCalc {
 
     auto lhs_node = MakeVarNode(id_token);
     auto rhs_node = ParseExpression();
-    UseToken(';');
+    UseToken(emplex::Lexer::ID_SEMICOLON);
 
     return ASTNode{ASTNode::ASSIGN, lhs_node, rhs_node};
 
@@ -160,7 +160,7 @@ class MacroCalc {
 
     auto lhs_node = MakeVarNode(id_token);
     auto rhs_node = ParseExpression();
-    UseToken(';');
+    UseToken(emplex::Lexer::ID_SEMICOLON);
 
     return ASTNode{ASTNode::ASSIGN, lhs_node, rhs_node};
   }
@@ -231,7 +231,7 @@ class MacroCalc {
       expressionNode.AddChild(rhs);
     }*/
     //std::cout << "debug tree printing: " << std::endl;
-    DebugASTCheck(expressionNode, 0); //Remove when printing is ready
+    //DebugASTCheck(expressionNode, 0); //Remove when printing is ready
     //std::cout << "_________" << std::endl;
     return expressionNode;
   }
@@ -269,11 +269,26 @@ class MacroCalc {
     }
     else
     {
-      std::string old_node = CurToken().lexeme;
+      auto old_node = CurToken();
+
       auto cur_node = ASTNode{ASTNode::EXPR};
-      int token = UseToken();
-      cur_node.SetValue(std::stod(old_node));//token);
-      cur_node.SetStrValue(old_node);//Set it's value here too for debugging reasons  // + " <!>");
+      if (old_node.id == emplex::Lexer::ID_IDENTIFIER)
+      {
+        cur_node = ASTNode{ASTNode::VARIABLE};
+        int token = UseToken();
+        cur_node.SetStrValue(old_node.lexeme);//Set it's value here too for debugging reasons  // + " <!>");
+        //cur_node.SetStrValue(old_node);//Set it's value here too for debugging reasons  // + " <!>");
+      }
+      else
+      {
+        cur_node = ASTNode{ASTNode::NUMBER};
+        int token = UseToken();
+        cur_node.SetValue(std::stod(old_node.lexeme));//token);
+        //Identifier
+        //cur_node.SetValue(std::stod(old_node));//token);
+      }
+
+
       //DebugTokenCheck();
       //DebugPrint("Nothing");
       return cur_node;

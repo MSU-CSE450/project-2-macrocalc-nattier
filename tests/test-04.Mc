@@ -1,3 +1,4 @@
 // Create and set a variable.
 var ten = 10;
-print(ten);
+var five = 5;
+print(ten + five);
