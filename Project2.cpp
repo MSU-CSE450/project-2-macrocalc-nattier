@@ -256,21 +256,8 @@ class MacroCalc {
     }
   }
 
-  ASTNode ParseExpressionExponentiate() {
-    //This Needs some fixing
-
-    //Right
-    if (CurToken().lexeme == "**")
-    {
-      auto cur_node = ASTNode{ASTNode::MATH_OP};
-      int token = UseToken();
-      cur_node.SetValue(token);
-      cur_node.SetStrValue("**");
-      //DebugPrint("Exponential");
-      return cur_node;
-    }
-    else
-    {
+  ASTNode ParseExpressionValue()
+  {
       auto old_node = CurToken();
 
       auto cur_node = ASTNode{ASTNode::EXPR};
@@ -295,7 +282,23 @@ class MacroCalc {
       //DebugTokenCheck();
       //DebugPrint("Nothing");
       return cur_node;
+  }
+
+  ASTNode ParseExpressionExponentiate() {
+    //This Needs some fixing
+    
+    ASTNode lhs = ParseExpressionValue();
+    //Right
+    if (CurToken().lexeme == "**")
+    {
+      int token = UseToken();
+      ASTNode rhs = ParseExpressionValue();
+      lhs = ASTNode{ASTNode::MATH_OP, lhs, rhs};
+      lhs.SetValue(token);
+      lhs.SetStrValue("**");
+      //DebugPrint("Exponential");
     }
+    return lhs;
   }
 
   ASTNode ParseExpressionMultDivMod() {
