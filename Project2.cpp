@@ -215,7 +215,7 @@ class MacroCalc {
 
     //If it does not end in a semi-colon we check if there is a beginscope token
     //If there is we add a beginscope node
-    if (UseTokenIf(emplex::Lexer::ID_BEGINSCOPE)) {
+    if (CurToken() == emplex::Lexer::ID_BEGINSCOPE) {
       while_node.AddChild(ParseScope());
     }
     //Otherwise we just parse the single statement
