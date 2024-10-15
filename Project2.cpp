@@ -189,7 +189,7 @@ class MacroCalc {
 
     //If the statement has an else clause we apply the same logic as above
     if (UseTokenIf(emplex::Lexer::ID_ELSE)) {
-      if (UseTokenIf(emplex::Lexer::ID_BEGINSCOPE)) {
+      if (CurToken() == emplex::Lexer::ID_BEGINSCOPE) {
         if_node.AddChild(ParseScope());
       }
       else {
