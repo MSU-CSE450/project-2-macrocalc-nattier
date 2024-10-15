@@ -430,10 +430,13 @@ class MacroCalc {
     ASTNode lhs = ParseExpressionOr();
     if (CurToken().lexeme == "=")
     {      
-      ASTNode rhs = ParseExpressionAssign();  // Right associative.
+      int token = UseToken();
+      ASTNode rhs = ParseExpressionOr();  // Right associative.
       //DebugPrint("right assign");
-      rhs.SetStrValue("=");
-      return ASTNode(ASTNode::ASSIGN, lhs, rhs);
+      lhs = ASTNode(ASTNode::ASSIGN, lhs, rhs);
+      lhs.SetValue(token); 
+      lhs.SetStrValue("=");
+      //return ;
     }
     return lhs;
   }
