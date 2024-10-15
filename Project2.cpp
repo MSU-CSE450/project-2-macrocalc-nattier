@@ -179,7 +179,7 @@ class MacroCalc {
     UseToken(emplex::Lexer::ID_CLOSEPAREN);
 
     //If the if-statement has a begin scope we add a scope node
-    if (UseTokenIf(emplex::Lexer::ID_BEGINSCOPE)) {
+    if (CurToken() == emplex::Lexer::ID_BEGINSCOPE) {
       if_node.AddChild(ParseScope());
     }
     //Otherwise we just parse the single statement
