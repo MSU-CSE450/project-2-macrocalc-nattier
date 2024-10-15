@@ -538,7 +538,6 @@ double EvaluateMathOp(const ASTNode& node) {
       case ASTNode::ASSIGN: {
         double rhs_value = Run(node.GetChild(1)); // Get RHS
         const ASTNode& lhs = node.GetChild(0);
-        // Likely dont need this.
         auto var = symbols.VarValue(lhs.GetVarID());
         symbols.SetValue(var.name, rhs_value);
         return rhs_value;
@@ -614,9 +613,37 @@ double EvaluateMathOp(const ASTNode& node) {
       case ASTNode::EXPR:
         return EvaluateExpression(node);
 
-      case ASTNode::MATH_OP:
-        // HANDLED IN EXPR        
-        return 0.0; 
+
+      case ASTNode::MATH_OP: {
+        // Evaluate left and right sub-expressions first (recursion)
+        double lhs_value = Run(node.GetChild(0));
+        double rhs_value = Run(node.GetChild(1));
+        // Get the OP
+        const std::string &op = node.GetStrValue();
+        // Perform the operation based on the operator string
+          if (op == "+") return lhs_value + rhs_value;
+          else if (op == "-") return lhs_value - rhs_value;
+          else if (op == "*") return lhs_value * rhs_value;
+          else if (op == "/") {
+            if (rhs_value == 0) {
+                std::cerr << "ERROR: Division by zero." << std::endl;
+                exit(1);
+            }
+            return lhs_value / rhs_value;
+          }
+          else if (op == "%") {
+            if (rhs_value == 0) {
+                std::cerr << "ERROR: Modulus by zero." << std::endl;
+                exit(1);
+            }
+            return std::fmod(lhs_value, rhs_value);
+          }
+          else if (op == "**") return std::pow(lhs_value, rhs_value);
+          else {
+            std::cerr << "ERROR: Unknown operator '" << op << "'." << std::endl;
+            exit(1);
+          }
+        }
 
       case ASTNode::COMP_OP:
         // HANDLED IN EXPR
@@ -652,3 +679,4 @@ int main(int argc, char * argv[])
   mc.Run();
   
 }
+
