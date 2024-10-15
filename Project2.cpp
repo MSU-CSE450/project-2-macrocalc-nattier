@@ -344,6 +344,11 @@ class MacroCalc {
       std::string lexeme_old = CurToken().lexeme;
       int token = UseToken();
       ASTNode rhs = ParseExpressionAddSub();
+
+      if (CurToken().lexeme == ">" || CurToken().lexeme == "<" || CurToken().lexeme == ">=" || CurToken().lexeme == "<=") {
+        Error(0, "Chaining of non-associative comparison operators is not allowed.");
+      }
+
       lhs = ASTNode{ASTNode::COMP_OP, lhs, rhs};
       lhs.SetValue(token);
       lhs.SetStrValue(lexeme_old);
@@ -360,6 +365,11 @@ class MacroCalc {
       std::string lexeme_old = CurToken().lexeme;
       int token = UseToken();
       ASTNode rhs = ParseExpressionCompare();
+
+      if (CurToken().lexeme == "!=" || CurToken().lexeme == "==") {
+        Error(0, "Chaining of equality operators is not allowed.");
+      }
+
       lhs = ASTNode{ASTNode::COMP_OP, lhs, rhs};
       lhs.SetValue(token);
       lhs.SetStrValue(lexeme_old);
@@ -703,3 +713,4 @@ int main(int argc, char * argv[])
   mc.Run();
   
 }
+
