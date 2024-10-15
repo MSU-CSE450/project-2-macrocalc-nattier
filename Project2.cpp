@@ -504,6 +504,12 @@ double EvaluateMathOp(const ASTNode& node) {
 
   double Run(const ASTNode& node) {
     switch (node.GetType()) {
+      case ASTNode::SCOPE: {
+        for (auto & child : node.GetChildren()) {
+          Run(child);
+        }
+      }
+
       // Return numeric values directly
       case ASTNode::NUMBER:
         return node.GetValue();
@@ -533,10 +539,8 @@ double EvaluateMathOp(const ASTNode& node) {
         double rhs_value = Run(node.GetChild(1)); // Get RHS
         const ASTNode& lhs = node.GetChild(0);
         // Likely dont need this.
-        //if (lhs.GetType() != ASTNode::VARIABLE) { // prob dont need
-        //  Error(0, "Assignment target must be a variable.");
-        //}
-        symbols.SetValue(lhs.GetStrValue(), rhs_value);
+        auto var = symbols.VarValue(lhs.GetVarID());
+        symbols.SetValue(var.name, rhs_value);
         return rhs_value;
       }
 
