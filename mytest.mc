@@ -1,6 +1,5 @@
-var is_prime = 1;
-var test_val = 2;
-while (is_prime && test_val) {
-  print("hello");
-  is_prime = 0;
-}
+// Make sure we can negate numbers.
+var x = -5;
+var y = !0;
+print(x);
+print(y);

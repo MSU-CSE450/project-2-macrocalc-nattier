@@ -632,6 +632,19 @@ ASTNode ParseExpressionValue() {
         }
       }
 
+      case ASTNode::MODIFIER: {
+        double child_val = Run(node.GetChild(0));
+
+        const std::string &op = node.GetStrValue();
+
+        if (op == "-") return child_val * -1;
+        else if (op == "!") return child_val == 0.0 ? 1.0 : 0.0;
+        else {
+          std::cerr << "ERROR: Unknown modifier '" << op << "'." << std::endl;
+          exit(1);
+        }
+      }
+
       // Shouldn't have any EMPTY
       case ASTNode::EMPTY:
         std::cerr << "ERROR: Detected EMPTY node" << std::endl;
