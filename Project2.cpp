@@ -273,6 +273,7 @@ ASTNode ParseExpressionValue() {
     {
       cur_node = ASTNode{ASTNode::MODIFIER};
       UseToken();
+      cur_node.SetStrValue(old_node.lexeme);
       cur_node.AddChild(ParseExpressionValue());
     }
     else if (old_node.id == emplex::Lexer::ID_IDENTIFIER) {

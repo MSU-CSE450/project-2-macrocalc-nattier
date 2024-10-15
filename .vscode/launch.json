@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/Project2",
-            "args": ["${workspaceFolder}/mytest.mc"],
+            "args": ["${workspaceFolder}/tests/test-12.Mc"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
