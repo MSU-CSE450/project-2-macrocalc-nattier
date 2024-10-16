@@ -349,8 +349,15 @@ ASTNode ParseExpressionValue() {
     } 
     else if (old_node.lexeme == ")")
     {
-      //cur_node = ASTNode{ASTNode::VARIABLE};
-      //UseToken();  // Consume the identifier token
+
+    }
+    else if (old_node.id == emplex::Lexer::ID_MATHOP)
+    {
+
+    }
+    else if (old_node.id == emplex::Lexer::ID_ID_EXPONENTIAL)
+    {
+
     }
     else {
       // If the token is neither an identifier nor a number, it's an error
