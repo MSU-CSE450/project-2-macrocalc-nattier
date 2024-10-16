@@ -359,6 +359,10 @@ ASTNode ParseExpressionValue() {
     {
 
     }
+    else if (old_node.id == emplex::Lexer::ID_COMPAREOP)
+    {
+
+    }
     else {
       // If the token is neither an identifier nor a number, it's an error
       Error(old_node.line_id, "Expected a variable or number but found '", old_node.lexeme, "'.");
