@@ -305,6 +305,16 @@ ASTNode ParseExpressionValue() {
     auto old_node = CurToken();
     ASTNode cur_node;
     
+    if (old_node.lexeme == "(")
+    {
+      cur_node = ASTNode{ASTNode::PARENTH};
+      UseToken(emplex::Lexer::ID_OPENPAREN);
+      //Parse the expression within the parenthesis
+      cur_node.AddChild(ParseExpression());
+      UseToken(emplex::Lexer::ID_CLOSEPAREN);
+      cur_node.SetStrValue("()");
+      old_node = CurToken();
+    }
     if (old_node.lexeme == "!" || old_node.lexeme == "-")
     {
       cur_node = ASTNode{ASTNode::MODIFIER};
@@ -336,7 +346,13 @@ ASTNode ParseExpressionValue() {
       // Parse the lexeme as a double, applying the negative sign if necessary
       double value = std::stod(old_node.lexeme);
       cur_node.SetValue(value);
-    } else {
+    } 
+    else if (old_node.lexeme == ")")
+    {
+      //cur_node = ASTNode{ASTNode::VARIABLE};
+      //UseToken();  // Consume the identifier token
+    }
+    else {
       // If the token is neither an identifier nor a number, it's an error
       Error(old_node.line_id, "Expected a variable or number but found '", old_node.lexeme, "'.");
     }

@@ -33,7 +33,8 @@ public:
     MATH_OP,
     COMP_OP,
     LOGICAL_OP,
-    MODIFIER
+    MODIFIER,
+    PARENTH
   };
 
 private:
