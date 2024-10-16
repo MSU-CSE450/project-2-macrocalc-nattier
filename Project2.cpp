@@ -5,6 +5,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <set>
+#include <regex>
 #include <vector>
 #include <assert.h>
 
@@ -105,9 +106,44 @@ class MacroCalc {
 
     ASTNode print_node{ASTNode::PRINT};
 
-    //If the print argument is a string literal we add a node as a child
+    /**If the print argument is a string literal we parse it for variables in braces using regex and add
+     * either variable children or string children to the print node
+    **/
     if (CurToken() == emplex::Lexer::ID_STRINGLITERAL) {
-      print_node.AddChild(ASTNode{ASTNode::STRING, CurToken().lexeme});
+
+      std::regex var_pattern("\\{(.*?)\\}");
+      std::smatch match;
+      std::string lexeme = CurToken().lexeme.substr(1, CurToken().lexeme.size() - 2);
+      std::string::const_iterator search_start(lexeme.cbegin());
+
+      size_t last_pos = 0;
+
+      while (std::regex_search(search_start, lexeme.cend(), match, var_pattern)) {
+        // Add the string part before the variable
+        if (std::distance(lexeme.cbegin(), search_start) + match.position() > last_pos) {
+            std::string literalString = lexeme.substr(last_pos, match.position());
+            ASTNode string_node{ASTNode::STRING};
+            string_node.SetStrValue(literalString);
+            print_node.AddChild(string_node);
+        }
+
+        // Add the variable node
+        std::string var_name = match[1];
+        ASTNode var_node{ASTNode::VARIABLE};
+        var_node.SetVarID(symbols.GetVarID(var_name));
+        print_node.AddChild(var_node);
+
+        // Move the search start position
+        last_pos = std::distance(lexeme.cbegin(), search_start) + match.position() + match.length();
+        search_start = match.suffix().first;
+      }
+
+      // Add any remaining string after the last variable
+      if (last_pos < lexeme.length()) {
+          ASTNode second_string_node{ASTNode::STRING};
+          second_string_node.SetStrValue(lexeme.substr(last_pos));
+          print_node.AddChild(second_string_node);
+      }
       UseToken();
     }
     //If it's not as string literal it's assumed to be an expression and appended as a child
@@ -500,47 +536,16 @@ ASTNode ParseExpressionValue() {
         // A PRINT node can have multiple children, representing either strings or expressions.
         for (const auto &child : node.GetChildren()) {
             
-            // If the child is a STRING node, we need to process it as a LITERAL string.
-            if (child.GetType() == ASTNode::STRING) {
-                std::string output = child.GetStrValue(); // Get the string value of the child
-                
-                // We now check for any variables within the string that are marked by braces, like: "{something}".
-                size_t pos = 0;
-                
-                // While there are still open braces '{' in the string....
-                while ((pos = output.find('{', pos)) != std::string::npos) {
-                    // Find the closing brace '}'.
-                    size_t endPos = output.find('}', pos);
-                    
-                    // If there is no closing brace, we stop processing 
-                    if (endPos == std::string::npos) break; 
-                    
-                    // Get just the name from the brackets
-                    std::string var_name = output.substr(pos + 1, endPos - pos - 1);
-                    
-                    // Get the value from symbol table
-                    double var_value = symbols.GetValue(var_name);
-
-                    std::ostringstream oss;
-                    oss << var_value;
-                    
-                    // Replace the "{variable}" in the string with the actual value 
-                    output.replace(pos, endPos - pos + 1, oss.str());
-                    
-                    // Move the position forward to continue checking for more variables in the string.
-                    // Move it forward the length of the string we replaced with
-                    pos += oss.str().length();
-                }
-                //Remove "" from string
-                std::erase(output, '"');
-
-                //Output processes string
-                std::cout << output;
-            } 
-            else {
-                // If the child is not a string (it's an expression then), evaluate it 
-                std::cout << Run(child);
-            }
+           if (child.GetType() == ASTNode::STRING) {
+            std::cout << child.GetStrValue();
+           } 
+           else if (child.GetType() == ASTNode::VARIABLE) {
+            const size_t var_id = child.GetVarID();
+            std::cout << symbols.VarValue(var_id).value;
+           }
+           else {
+            std::cout << Run(child);
+           }
          }
     
         // After printing all children, newline
