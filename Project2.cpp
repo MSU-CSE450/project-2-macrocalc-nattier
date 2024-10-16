@@ -530,6 +530,10 @@ ASTNode ParseExpressionValue() {
         return node.GetValue();
       }
 
+      case ASTNode::PARENTH: {
+        return Run(node.GetChild(0));
+      }
+
       // Retrieve and return the value of a var from the symbol table
       case ASTNode::VARIABLE: {
         const size_t var_id = node.GetVarID();
